@@ -1,6 +1,5 @@
 # https://www.youtube.com/watch?v=ePxZDuQdnW4
-# Data Mining & Business Intelligence | Tutorial #21 | Apriori Algorithm (Solved Problem)
-# Implemented Algorithm by David Schmid (Not efficiency optimized)
+# Implemented Algorithm by David Schmid (Not efficient and raw at current stage)
 
 # Libraries
 import pandas as pd

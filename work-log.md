@@ -1,0 +1,100 @@
+## Work Log David Schmid
+### 1. 22.09.2022 - 02.10.2022:
+#### 1.1 Work done:
+- I scanned through a number of papers with the topic "Association rules", but less than  30 papers for the moment. I will continue to find more later.
+- My focus was to understand the new developments and possible shortcomings of the current implementations. Moreover I tried to fgind out, how deep learning can be implemented with association rules. I haven't found a satisfying answer yet. 
+- I disvocered a paper "An-Improved-Evaluation-Methodology-for-Mining" (Published: 31 December 2021), which describes the improvement of the traditional association rule measures with "Bi-support, Bi-lift, Bi-improvement Bi-confidence".
+#### 1.2 Papers scanned (30 papers) - Most important summarized:
+#### 1.2.1 Mining-Association-Rules-between-Sets-of-Items-in-Large-Databases (1993, Rakesh Agrawal, Tomasz Imielinski, Arun Swami)<br>
+It can be seen as the founding paper of the traditional association rule model. All further association rule reasearch is based on this paper as a fundament. It presents the formal model and a case study. <br>
+"""Quote from paper"""<br>
+The work reported in this paper could be viewed as a step towards enhancing databases with functionalities to process queries such as (we have omitted the confidence factor specification):
+- Find all rules that have "Diet Coke" as consequent. These rules may help plan what the store should do to boost the sale of "Diet Coke".
+- Find all rules that have "bagels" in the antecedent. These rules may help determine what products may be impacted if the store discontinues selling bagels.
+- Find all rules that have "sausage" in the antecedent and "mustard" in the consequent. This query can be phrased alternatively as a request for the additional items that have to be sold together with sausage in order to make it highly likely that mustard will also be sold.
+- Find all the rules relating items located on shelves A and B in the store. These rules may help shelf planning by determining if the sale of items on shelf. A is related to the sale of items on shelf B.
+- Find the "best" k rules that have "bagels" in the consequent. Here, "best" can be formulated in terms of the confidence factors of the rules, or in terms of their support, i.e., the fraction of transactions satisfying the rule.
+
+#### 1.2.2 Association-Rules-Mining-A-Recent-Overview (2006)<br/>
+In year 2022, the "recent-overview" it is not that recent anymore. However considering the founding paper of 1993, at thatz time, some time passed and association rules matured.
+Problems/Proposed Solutions discovered in time:
+1. Problem: Redundant Association Rules<br>
+-> Possible solution: Rules have been extracted based on user-defined templates or item constraints<br>
+-> Possible solution: Researchers have developed interestingness measures to select only interesting rules<br>
+-> Possible solution: Researchers have proposed inference rules or inference systems to prune redundant rules and thus present smaller,
+and usually more understandable sets of association rules to the user<br>
+-> Possible solution: New frameworks for mining association rule have been proposed that find association rules with different formats or properties<br>
+2. Other measures as interestingness of an association<br>
+-> Instead of getting the the association rules based on a user, it could be grouped by frequent items within a time intervall.<br>
+-> The measure of significance of associations that is used could be the chi-squared test for correlation from classical statistics. 
+-> Problem: Using a high support typically reduces the numberof rules mined but will eliminate the rules with rare items. -> Possible solution: This problem can be adressed by allowing users to specify different minimum supports for the various items in their mining algorithm. 
+3. Negative association rules<br>
+Instead of mining positiive association rules, it is possible to mine negative rules. However a general algorithm is hard to develop and it is based on domain knowledge.
+
+#### 1.2.3 A brief overview of swarm intelligence-based algorithms for numerical association rule mining (2020)
+In this paper there are some methods described how to not only consider associations between transactions, but how to
+have numerical association rule mining. However, no implementation details are described. This paper is more of an overview.
+
+#### 1.2.4 Efficient Analysis of Pattern and Association Rule Mining Approaches (2013)
+In this paper, different association rule mining approaches and varaints are discussed. It's an older paper. However, it shows that research in the field of association rules is quite active.<br>
+Methods listed are:<br>
+- Apriori (1994)
+- AprioriTID (1994)
+- DHP (1995)
+- FDM (1996)
+- GSP (1996)
+- DIC (1997)
+- PincerSearch (1998)
+- CARMA (1999)
+- CHARM (1999)
+- Depth-project (2000)
+- Eclat (2000)
+- SPAD (2001)
+- SPAM (2002)
+- Diffset (2003)
+- FP-growth (2004)
+- DSM-FI (2004)
+- PRICES (2004)
+- PrefixSpan (2004)
+- Sporadic Rules (2005)
+- IGB (2005)
+- GenMax (2005)
+- FPMax (2005)
+- FHARM (2006)
+- H-mine (2007)
+- FHSAR (2008)
+- Reverse Apriori (2008)
+- DTFIM (2008)
+- GIT-tree (2009)
+- Scaling Apriori (2010)
+- CMRules (2010)
+- Minimum effort (2011)
+- TopSeqRules (2011)
+- FPG ARM (2012)
+- TNR (2012)
+- ClaSP (2013)
+
+#### 1.2.5 An Innovative Approach for Association Rule Mining in Grocery Dataset Based On Non-Negative Matrix Factorization And Autoencoder (2022)
+Interesting paper. Discusses the implementation of deep learning to get association rules. However the paper leaves many questions open. I would like to see the "code implementation" of the discussed method.
+
+#### 1.2.6 An Improved Evaluation Methodology for Mining Association Rules (2022)
+Quote<br>
+Here, this paper first analyzes the advantages and disadvantages of common measurement indicators of association rules and then puts forward four new measure indicators (i.e., Bi-support, Bi-lift, Bi-improvement, and Bi-confidence) based on the analysis. At last, this paper proposes a novel Bi-directional interestingness measure framework to improve the traditional one. In conclusion, the bi-directional interestingness measure framework (Bi-support and Bi-confidence framework) is superior to the traditional ones in the aspects of the objective criterion, comprehensive definition, and practical application.<br>
+For me this is a very practical/relevant paper. I would like to implement these new BI-measures and understand the advantages over the traditional evaluation measures.
+
+
+#### 1.3. Next steps (proposed):
+- I would to further optimize/clean the own implementation of the apiori-algorithm. It is really raw, but increases my understanding and let me experiment with variants.
+- I would like to implement "Bi-support, Bi-lift, Bi-improvement Bi-confidence" and compare it to the traditional measure
+- Experiment with the big dataset kz.csv for different methods (classical vs. Bi-measures)
+- I would like to understand, how Assocation Rule Mining is possible with Deep Learning methods, as described in 1.2.5. For that reason I have tin explore some exemplatory code of a working implementation based on Tensorflow or Pytorch
+
+#### 1.4. Questions:
+- What do you think generally about my next steps? Do you have a specific guidance, where to move/ what to explore?
+- In our first call, you mentioned that nowadays Association rules are developed by Deep Learning. I couldn't find a good example of such an approach, with working code. Maybe I was focused to much on the term "Association rules" and missed the term for the other modern approach.
+- Personally I really like the simplicity and power of association rules. It is really a very practical, business-related method to find associations. I explored, that there are many variants and optimizations, however in PIP, only the most promiment classical algorithms like apriori, exclat, fp-growth can be found and there is generally a lack of working code examples in the papers. Can I get the underlying code of the experimental approaches of the papers somewhere or is it generally hidden in research papers?
+- Are there any "must-read" papers for association rule topic, which you can recommend me?
+- What is your recommendation to continue?
+
+#### 1.5 Experiment with own implementation
+![Alt text](Screenshot_2022-10-02.png?raw=true "apriori")
