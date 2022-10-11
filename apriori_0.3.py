@@ -49,6 +49,41 @@ def apriori(transactions_ungrouped, min_support_perc=0.5, min_confidence=0.5,min
                 if combination.isdisjoint(transaction): # No common items, if 1 item is present, it is not disjoint
                     count[combination] += 1
         return {k:v for k, v in count.items()}
+
+    def get_bi_lift(antecedent_consequent,antecedent,consequent):
+        count_consequent = 0
+        count_rev_antecedent = 0
+        count_rev_antecedent_consequent = 0
+        for transaction in transactions:
+            if consequent.issubset(transaction):
+                count_consequent += 1
+            if antecedent.isdisjoint(transaction):
+                count_rev_antecedent +=1
+            if consequent.issubset(transaction) and antecedent.isdisjoint(transaction):
+                count_rev_antecedent_consequent += 1
+
+        if count_consequent *count_rev_antecedent == 0 or count_rev_antecedent_consequent == 0:
+            return "NA"
+        else:
+            return \
+            ((support_total[antecedent_consequent]/num_transactions)/((init_support[list(antecedent_consequent-antecedent)[0]]/num_transactions)*(support_total[antecedent]/num_transactions)))/\
+            ((count_rev_antecedent_consequent/num_transactions)/((count_rev_antecedent/num_transactions)*(count_consequent/num_transactions)))
+
+    
+    def get_bi_confidence(antecedent_consequent,antecedent,consequent):
+        count_rev_antecedent = 0
+        count_rev_antecedent_consequent = 0
+        for transaction in transactions:
+            if antecedent.isdisjoint(transaction):
+                count_rev_antecedent +=1
+            if consequent.issubset(transaction) and antecedent.isdisjoint(transaction):
+                count_rev_antecedent_consequent += 1
+
+        return \
+            support_total[antecedent_consequent]/support_total[antecedent]-\
+            (count_rev_antecedent_consequent/ count_rev_antecedent)
+
+            
     
     def get_association_rules(combinations,min_confidence):
         rules = defaultdict(list)
@@ -64,15 +99,17 @@ def apriori(transactions_ungrouped, min_support_perc=0.5, min_confidence=0.5,min
                             support_total[parent]/num_transactions, # set "value support_antecedent_consequent"
                             anti_support_total[parent]/num_transactions, # set "value anti support_antecedent_consequent"
                             support_total[parent]/support_total[child], # set "rule confidence"
-                            (support_total[parent]/num_transactions)/((init_support[list(parent-child)[0]]/num_transactions)*(support_total[child]/num_transactions)) #set "lift"
+                            (support_total[parent]/num_transactions)/((init_support[list(parent-child)[0]]/num_transactions)*(support_total[child]/num_transactions)), #set "lift"
+                            get_bi_lift(parent,child,parent-child), #set "bi-lift"
+                            get_bi_confidence(parent,child,parent-child)
                             ])
         return rules
     
     def pandas_df_ruleset(rules):
-        result = [["antecedent","consequent","antecedent_consequent","support_antecedent","support_consequent","support_antecedent&consequent","anti-support_antecedent&consequent","confidence","lift"]]
+        result = [["antecedent","consequent","antecedent_consequent","support_antecedent","support_consequent","support_antecedent&consequent","anti-support_antecedent&consequent","confidence","lift","bi-lift","bi-confidence"]]
         for k,vs in rules.items():
             for v in vs:
-                result.append([v[0],v[1],k,v[2],v[3],v[4],v[5],v[6],v[7]])
+                result.append([v[0],v[1],k,v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9]])
         df = pd.DataFrame(result)
         df.columns = df.iloc[0] 
         df = df[1:]
