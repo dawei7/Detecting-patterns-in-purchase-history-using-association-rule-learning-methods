@@ -103,7 +103,7 @@ For me this is a very practical/relevant paper. I would like to implement these 
 #### 2.1 Work done:
 - Improved & corrected errors in algorithm, see in apriori_0_3.py with more optional parameters to get only wished associations from ... to ... length of associations back
 - Implemented reverse support, bi-lift, bi-confidence as described in Paper "2022_An Improved Evaluation Methodology for Mining"
-#### 2.3. Next steps (proposed):
+#### 2.2. Next steps (proposed):
 - Implement rest of measures as desctribed in paper "2022_An Improved Evaluation Methodology for Mining"
 - Upscale to kz_dataset and experiment / interprete results
 - Study further papers and come up with own improvement or suggestion how to improve association mining rules
