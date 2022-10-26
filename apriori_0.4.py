@@ -5,6 +5,7 @@
 import pandas as pd
 import itertools
 from collections import defaultdict
+import math
 
 
 def apriori(transactions_ungrouped, min_support_perc=0.5, min_confidence=0.5,min_lift=1,min_associations=2,max_associations=5):
@@ -79,6 +80,9 @@ def apriori(transactions_ungrouped, min_support_perc=0.5, min_confidence=0.5,min
             if consequent.issubset(transaction) and antecedent.isdisjoint(transaction):
                 count_rev_antecedent_consequent += 1
 
+        if count_rev_antecedent == 0:
+            return "NA"
+
         return \
             support_total[antecedent_consequent]/support_total[antecedent]-\
             (count_rev_antecedent_consequent/ count_rev_antecedent)
@@ -104,14 +108,15 @@ def apriori(transactions_ungrouped, min_support_perc=0.5, min_confidence=0.5,min
                             get_bi_confidence(parent,child,parent-child), #set "bi-confidence"
                             (support_total[parent]/support_total[child])-(init_support[list(parent-child)[0]]/num_transactions), #set improvement
                             ((support_total[parent]/num_transactions)-((init_support[list(parent-child)[0]]/num_transactions)*(support_total[child]/num_transactions)))/(1-support_total[child]/num_transactions), #set bi-improvement
+                            ((support_total[parent]/support_total[child])-(init_support[list(parent-child)[0]]/num_transactions))/math.sqrt(((init_support[list(parent-child)[0]]/num_transactions)*(1-(init_support[list(parent-child)[0]])/num_transactions))/num_transactions) #set chi-square-analysis (csa)
                             ])
         return rules
     
     def pandas_df_ruleset(rules):
-        result = [["antecedent","consequent","antecedent_consequent","support_antecedent","support_consequent","support_antecedent&consequent","anti-support_antecedent&consequent","confidence","lift","bi-lift","bi-confidence","improvement","bi-improvement"]]
+        result = [["antecedent","consequent","antecedent_consequent","support_antecedent","support_consequent","support_antecedent&consequent","anti-support_antecedent&consequent","confidence","lift","bi-lift","bi-confidence","improvement","bi-improvement","csa"]]
         for k,vs in rules.items():
             for v in vs:
-                result.append([v[0],v[1],k,v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],v[10],v[11]])
+                result.append([v[0],v[1],k,v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],v[10],v[11],v[12]])
         df = pd.DataFrame(result)
         df.columns = df.iloc[0] 
         df = df[1:]
@@ -148,6 +153,6 @@ def apriori(transactions_ungrouped, min_support_perc=0.5, min_confidence=0.5,min
 
 transactions= pd.read_csv("transactions_V2.csv")
 
-df_apriori = apriori(transactions, min_support_perc=0.2, min_confidence=0.2, min_lift=0.2,min_associations=2,max_associations=2)
+df_apriori = apriori(transactions, min_support_perc=0.2, min_confidence=0.2, min_lift=0.2,min_associations=4,max_associations=4)
 
 print(df_apriori.to_string())
