@@ -107,3 +107,31 @@ For me this is a very practical/relevant paper. I would like to implement these 
 - Implement rest of measures as desctribed in paper "2022_An Improved Evaluation Methodology for Mining"
 - Upscale to kz_dataset and experiment / interprete results
 - Study further papers and come up with own improvement or suggestion how to improve association mining rules
+
+### 3 13.10.2022 - 30.10.2022
+#### 3.1 Work done (Latest version of algorithm: fp_growth_run_V06)
+- Based on apriori, experimented with  algorithm and implemented all metrics from paper "2022_An Improved Evaluation Methodology for Mining"
+- However, I got into a crisis, as I realized how slow and inefficient the algorithm was
+- I looked for the fastest popular association rule method, which is FP-Grwoth
+- I took the basis of aa working implementation and modified it according to my needs
+- On basis of the fp-growth algorithm, I develoiped a completely new concept, to adress the weaknesses I realized and found in paper
+- 1. Problem: There was a question: Why is association rule methods rarely used in practice? - Main anwser: We don't consider mutiple items in one transaction
+- 2. Problem: Counting the support tells something about the relations. But is that the major interest of Business? It is only a half-solution and the mined association rules need to be conencted to economic date, speak of price andf profit, that way is very cumbersome
+- 3. Problem: Are transactions happened 1 year ago the same important as current transaction? A possible solution is to pre-clean only the rishful dates. But is there not a better smoother way?
+- My newly developed considers all 3 problems and is very efficient. The main driver is profit. Because I didn't have profit per product or product category, for simplification I considered 0.1 * Price, which is not true in reality. Mostly more expensive products have less margin than cheaper products and depending on product category. I don't consider support anymore as simple count, but I weight the so called support according to chosen input factors.
+For example max_profit has weight 3, 0 profit has weight 0. Then I make a linear distribution of each article in a transaction. If there are the same 5 articles
+in a transaction I mutiply their weigth * 5, to represent the reality. Normally the cheaper products should havbe a higher revenue and thereforre make up the profit of
+more rare expensive items. At the end it is a pure "profitability support" view. Moreover I can repesent the diferent dates with a date function. For example I weight
+transactions which are 90 days old near zero and current transactions near 1.
+at the end I multiple the time functiuon with the profit function to get the date based weighted profit support.
+The results are interesting and give completely new insights in the key driver "proditability".
+However, there have to be other metrics developed to really measure the success.
+Moreover the date function, fopr which I currently take a modified sigmoid function need to be ajdusted to better represent reality.
+#### 2.2. Next steps (proposed):
+- Verify/Review correctness, therefore Simulation of simple example, which can be recalculated manually
+- Analyse Rules tradtionally with big data set and the newly developed association rule algorithm
+- Make a beautiful Juypter Notebook for analysis the different algorithms
+- Check differences / Interprete Differences
+- Explore the new algorithm
+- Develop new metrics; Old metrics are too strict for interpretation, because Support can grow, because of "support as profit", has to be interpreted as "gained profit" through an association
+- Describe advantages/ disadvantages of new algorithm
