@@ -127,7 +127,7 @@ at the end I multiple the time functiuon with the profit function to get the dat
 The results are interesting and give completely new insights in the key driver "proditability".
 However, there have to be other metrics developed to really measure the success.
 Moreover the date function, fopr which I currently take a modified sigmoid function need to be ajdusted to better represent reality.
-#### 2.2. Next steps (proposed):
+#### 3.2. Next steps (proposed):
 - Verify/Review correctness, therefore Simulation of simple example, which can be recalculated manually
 - Analyse Rules tradtionally with big data set and the newly developed association rule algorithm
 - Make a beautiful Juypter Notebook for analysis the different algorithms
