@@ -129,9 +129,10 @@ However, there have to be other metrics developed to really measure the success.
 Moreover the date function, fopr which I currently take a modified sigmoid function need to be ajdusted to better represent reality.
 #### 3.2. Next steps (proposed):
 - Verify/Review correctness, therefore Simulation of simple example, which can be recalculated manually
-- Analyse Rules tradtionally with big data set and the newly developed association rule algorithm
+- Analyse Rules tradtionally with big data set and the newly developed association rule algorithm (Suggestion: Check that itt works in general for other datasets, too)
 - Make a beautiful Juypter Notebook for analysis the different algorithms
 - Check differences / Interprete Differences
 - Explore the new algorithm
-- Develop new metrics; Old metrics are too strict for interpretation, because Support can grow, because of "support as profit", has to be interpreted as "gained profit" through an association
-- Describe advantages/ disadvantages of new algorithm
+- Develop new metrics; Old metrics are too strict for interpretation, because Support can grow, because of "support as profit", has to be interpreted as "gained profit" through an association (Maybe business related, )
+- Describe advantages/ disadvantages of new algorithm (Prove, whatever I write in Thesis, prove the advantages)
+- Reorganise Github structure, README -> A Instruction where to go
