@@ -9,7 +9,7 @@ from itertools import combinations
 
 
 class Node:
-    def __init__(self, itemName, support, parentNode, profit=1, weight_date=1):
+    def __init__(self, itemName, support, parentNode):
         self.itemName = itemName
         self.count = support
         self.parent = parentNode
@@ -19,16 +19,12 @@ class Node:
     def increment(self, support, profit=1, weight_date=1):
         self.count += support
 
-    def display(self, ind=1): # Recursive function
-        print('  ' * ind, self.itemName, ' ', self.count,)
-        for child in list(self.children.values()):
-            child.display(ind+1) 
     
     def create_association_rules(self,assoc_rules,path=""):
         assoc_rules.append((self.itemName,self.count,path))
         for child in list(self.children.values()):
             child.create_association_rules(assoc_rules,path+","+str(self.itemName))
-        else: # After Recursion, clean up list
+        else: # After Recursion, return list
             return assoc_rules
 
 
@@ -41,11 +37,12 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
     dateSupportDict = dict()
 
     itemSetList = []
+    dict_profit_per_item = defaultdict(list)
     support = []
     numTransaction = 0
 
-    dateInDataframe = date_col and max_date and date_range and date_sensitivity
-    profitInDataframe = profit_col and max_profit and profit_sensitivity
+    dateInDataframe = date_col and max_date and date_range and date_sensitivity # Flag: True/False is here date data
+    profitInDataframe = profit_col and max_profit and profit_sensitivity # Flag: True/False Is there profit data
 
     # Date based mofidier
     if dateInDataframe:
@@ -61,12 +58,9 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
         for idx, item in enumerate(row[item_col-1]):
                 try: # Solve problem of multiple items per transaction
                     idx_multi = tempItemSetList.index(item) # If not double, it will fail
-                    if(dateInDataframe and profitInDataframe): #Date & Profit available in Dataframe
-                        tempSupport[idx_multi] += dateSupportDict[row[date_col-1][idx]]*profit_sensitivity(row[profit_col-1][idx]/max_profit) # Support of Date Function * Profit Function
-                    elif(dateInDataframe): #Date available in Dataframe
-                        tempSupport[idx_multi] += dateSupportDict[row[date_col-1][idx]] # Support of Date Function
-                    elif(profitInDataframe): #Profit available in Dataframe
-                        tempSupport[idx_multi] += profit_sensitivity(row[profit_col-1][idx]/max_profit) # Support of Profit Function
+                    if(profitInDataframe): #Date & Profit available in Dataframe
+                        tempSupport[idx_multi] += dateSupportDict[row[date_col-1][idx]]
+                        dict_profit_per_item[item][0] += row[profit_col-1] # If there are mutiple items, don't add to the count, but to the profit, to get higher average profit per item
                     else: # Simple Count but without consideration of multiple items per Transactions as in the Association Rules Algorithms, therefore pass
                         pass # Therefore in this case pass
                         
@@ -74,16 +68,27 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
                     try:
                         if(dateInDataframe and profitInDataframe): #Date & Profit available in Dataframe
                             if math.isnan(dateSupportDict[row[date_col-1][idx]]*profit_sensitivity(row[profit_col-1][idx])) == False:
-                                tempSupport.append(dateSupportDict[row[date_col-1][idx]]*profit_sensitivity(row[profit_col-1][idx]/max_profit)) # Support of Date Function * Profit Function
-                                tempItemSetList.append(item) # Append every new element
+                                # Add the end of the loop, we will divide sum profit of each item / count of each item. If there are multiple items, count once, but add up profit
+                                # In this way, we can weight the mutiple items, without destroying the equivalence of the principle of association rules
+                                # However, this method is only possible if we have profit on each item, or assumed profit at least dervived from prices/revenue
+                                dict_profit_per_item[item][1]+=1 #One normal counter needed for average at the end
+                                dict_profit_per_item[item][0]+=row[profit_col-1][idx] #Add up profit
+
+                                tempSupport.append(dateSupportDict[row[date_col-1][idx]]) # Support of Date Function
+                                tempItemSetList.append(item) #Append every new element
                         elif(dateInDataframe): #Date available in Dataframe
                             if math.isnan(dateSupportDict[row[date_col-1][idx]]) == False:
                                 tempSupport.append(dateSupportDict[row[date_col-1][idx]]) # Support of Date Function
                                 tempItemSetList.append(item) # Append every new element
                         elif(profitInDataframe): #Date available in Dataframe
                             if math.isnan(profit_sensitivity(row[profit_col-1][idx]/max_profit)) == False:
-                                tempSupport.append(profit_sensitivity(row[profit_col-1][idx]/max_profit)) # Support of Profit Function
-                                tempItemSetList.append(item) # Append every new element
+                                if item not in dict_profit_per_item:
+                                    dict_profit_per_item[item] += [row[profit_col-1][idx],0] #If there doesn't exist a dictionay, create one
+                                dict_profit_per_item[item][1]+=1 #One normal counter needed for average at the end
+                                dict_profit_per_item[item][0]+=row[profit_col-1][idx]#Add up profit
+
+                                tempSupport.append(1) # Support of Profit Function
+                                tempItemSetList.append(item) # Append every new element         
                         else: # Simple Count as in the traditional Association Rules Algorithms
                             tempSupport.append(1) #Count 1
                             tempItemSetList.append(item) # Append every new element
@@ -92,14 +97,13 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
         
         if tempSupport:
             itemSetList.append(tempItemSetList) #Shortened list every item only one time
-            if profitInDataframe:
-                numTransaction+=sum(tempSupport)
-            elif dateInDataframe:
-                numTransaction+=max(tempSupport) # Support of each item is different, get max Support of highest item, instead of count 1
+            if dateInDataframe:
+                numTransaction+=tempSupport[0] # Support of transaction by after date decay function, just take the first value, all values are the same
             else:
                 numTransaction+=1
-            support.append(tempSupport) # Add List to List representing each item has individual support
-    return itemSetList, support, numTransaction
+            support.append(tempSupport) # Add List to List representing each item has individual support, however in our case it is the same because of Association Rule equivalence
+
+    return itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe
 
 
 def constructTree(itemSetList, support, minSup, maxSup):
@@ -123,6 +127,7 @@ def constructTree(itemSetList, support, minSup, maxSup):
     # Update FP tree for each cleaned and sorted itemSet
     for idx, itemSet in enumerate(itemSetList):
 
+        # In our case, all items have the same support, therefore it doesn't matter, therefore a more general approach here, where it could matter in future
         itemSet_zipped = list(zip(itemSet, support[idx]))
         itemSet = [item for item in itemSet_zipped if item[0] in headerTable]
         itemSet.sort(key=lambda item: headerTable[item[0]][0], reverse=True)
@@ -145,7 +150,7 @@ def updateTree(item, treeNode, headerTable, support):
     return treeNode.children[item]
 
 
-def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction):
+def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe):
     dict_assoc_rules = dict()
     rules = []
     list_itemsets = []
@@ -203,8 +208,22 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction):
         supAntecedentConsequent = value[3]
         supConsequent = value[2]
 
+
+        # profit metrics
+        profit_associated = 0
+        profit_associated_prev = 0
+        profit_last_item = 0
+
+        if profitInDataframe:
+            profit_last_item = dict_profit_per_item[consequent[0]][0]/dict_profit_per_item[consequent[0]][1]*supConsequent
+            for item in antecedentConsequent:
+                profit_associated += dict_profit_per_item[item[0]][0]/dict_profit_per_item[item[0]][1]*supConsequent
+
         if antecedent != []:
             supAntecedent = dict_assoc_rules[frozenset(value[0])][3]
+            if profitInDataframe:
+                for item in antecedentConsequent:
+                    profit_associated_prev += dict_profit_per_item[item[0]][0]/dict_profit_per_item[item[0]][1]*supAntecedent
 
             # Percentage measures
             percItemSetSup = supAntecedentConsequent / numTransaction #in %
@@ -233,7 +252,10 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction):
                     percItemSetSup,
                     confidence,
                     lift,
-                    improvement
+                    improvement,
+                    profit_associated,
+                    profit_associated_prev,
+                    profit_last_item
                     ])
     return rules
 
@@ -243,7 +265,7 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction):
 
 # Added by David Schmid
 def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minConf=0, item_col=1, date_col=False, profit_col=False, max_date = False, date_range=False, date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5)), max_profit = False, profit_sensitivity = lambda x : 1*x):
-    itemSetList, support, numTransaction = getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity)
+    itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe = getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity)
     minSup = numTransaction * minSupRatio
     maxSup = numTransaction * maxSupRatio
     fpTree, headerTable = constructTree(itemSetList, support, minSup, maxSup)
@@ -251,10 +273,9 @@ def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minConf=0, ite
         print('No frequent item set')
     else:
         assoc_rules = fpTree.create_association_rules(list())
-        rules = associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction)
-        rules_pd = pd.DataFrame(rules,columns=["antecedent","sup_antecedent","consequent","sup_consequent","antecedent&consequent","sup_ant&cons","sup_perc_ant&cons","confidence","lift","improvement"]).sort_values("sup_perc_ant&cons",ascending=False)
+        rules = associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe)
+        rules_pd = pd.DataFrame(rules,columns=["antecedent","sup_antecedent","consequent","sup_consequent","antecedent&consequent","sup_ant&cons","sup_perc_ant&cons","confidence","lift","improvement","profit_associated","profit_associated_prev","profit_last_item"]).sort_values("sup_perc_ant&cons",ascending=False)
         return rules_pd
-
 
 
 data_simple = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
