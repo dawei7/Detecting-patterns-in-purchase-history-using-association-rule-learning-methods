@@ -41,8 +41,8 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
     support = []
     numTransaction = 0
 
-    dateInDataframe = date_col and max_date and date_range and date_sensitivity # Flag: True/False is here date data
-    profitInDataframe = profit_col and max_profit and profit_sensitivity # Flag: True/False Is there profit data
+    dateInDataframe = True if date_col and max_date and date_range and date_sensitivity else False # Flag: True/False is here date data
+    profitInDataframe = True if profit_col and max_profit and profit_sensitivity else False # Flag: True/False Is there profit data
 
     # Date based mofidier
     if dateInDataframe:
@@ -59,7 +59,6 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
                 try: # Solve problem of multiple items per transaction
                     idx_multi = tempItemSetList.index(item) # If not double, it will fail
                     if(profitInDataframe): #Date & Profit available in Dataframe
-                        tempSupport[idx_multi] += dateSupportDict[row[date_col-1][idx]]
                         dict_profit_per_item[item][0] += row[profit_col-1] # If there are mutiple items, don't add to the count, but to the profit, to get higher average profit per item
                     else: # Simple Count but without consideration of multiple items per Transactions as in the Association Rules Algorithms, therefore pass
                         pass # Therefore in this case pass
@@ -71,8 +70,11 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
                                 # Add the end of the loop, we will divide sum profit of each item / count of each item. If there are multiple items, count once, but add up profit
                                 # In this way, we can weight the mutiple items, without destroying the equivalence of the principle of association rules
                                 # However, this method is only possible if we have profit on each item, or assumed profit at least dervived from prices/revenue
+                                if item not in dict_profit_per_item:
+                                    dict_profit_per_item[item] += [0,0,0] #If there doesn't exist a dictionay, create one
                                 dict_profit_per_item[item][1]+=1 #One normal counter needed for average at the end
                                 dict_profit_per_item[item][0]+=row[profit_col-1][idx] #Add up profit
+                                dict_profit_per_item[item][2]+=dateSupportDict[row[date_col-1][idx]] #Support of Date Function only for diluted profit
 
                                 tempSupport.append(dateSupportDict[row[date_col-1][idx]]) # Support of Date Function
                                 tempItemSetList.append(item) #Append every new element
@@ -83,7 +85,7 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
                         elif(profitInDataframe): #Date available in Dataframe
                             if math.isnan(profit_sensitivity(row[profit_col-1][idx]/max_profit)) == False:
                                 if item not in dict_profit_per_item:
-                                    dict_profit_per_item[item] += [row[profit_col-1][idx],0] #If there doesn't exist a dictionay, create one
+                                    dict_profit_per_item[item] += [0,0] #If there doesn't exist a dictionay, create one
                                 dict_profit_per_item[item][1]+=1 #One normal counter needed for average at the end
                                 dict_profit_per_item[item][0]+=row[profit_col-1][idx]#Add up profit
 
@@ -103,18 +105,24 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
                 numTransaction+=1
             support.append(tempSupport) # Add List to List representing each item has individual support, however in our case it is the same because of Association Rule equivalence
 
-    return itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe
+    return itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe, dateInDataframe
 
 
-def constructTree(itemSetList, support, minSup, maxSup):
+def constructTree(itemSetList, support, minSup, maxSup, dict_profit_per_item, profitInDataframe, minProfit):
     headerTable = defaultdict(int)
+
     # Counting support and create header table
     for idx, itemSet in enumerate(itemSetList):
         for idx2, item in enumerate(itemSet):
             headerTable[item] += support[idx][idx2]
 
     # Deleting items below minSup
-    headerTable = dict((item, sup) for item, sup in headerTable.items() if sup >= minSup and sup <= maxSup) 
+    # Even with profit
+    if profitInDataframe:
+        headerTable = dict((item, sup) for item, sup in headerTable.items() if (dict_profit_per_item[item][0]/dict_profit_per_item[item][1]) > minProfit)
+    else:
+        headerTable = dict((item, sup) for item, sup in headerTable.items() if sup >= minSup and sup <= maxSup) 
+    
     if(len(headerTable) == 0):
         return None, None
 
@@ -150,7 +158,7 @@ def updateTree(item, treeNode, headerTable, support):
     return treeNode.children[item]
 
 
-def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe):
+def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe,diluted_total_profit):
     dict_assoc_rules = dict()
     rules = []
     list_itemsets = []
@@ -213,17 +221,23 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
         profit_associated = 0
         profit_associated_prev = 0
         profit_last_item = 0
+        loss_by_change = 0
+        net_change = 0
 
         if profitInDataframe:
-            profit_last_item = dict_profit_per_item[consequent[0]][0]/dict_profit_per_item[consequent[0]][1]*supConsequent
+            profit_last_item = dict_profit_per_item[consequent[0]][0]/dict_profit_per_item[consequent[0]][1]*supAntecedentConsequent
             for item in antecedentConsequent:
-                profit_associated += dict_profit_per_item[item[0]][0]/dict_profit_per_item[item[0]][1]*supConsequent
+                profit_associated += dict_profit_per_item[item[0]][0]/dict_profit_per_item[item[0]][1]*supAntecedentConsequent
+            perc_of_total_profit = profit_associated / diluted_total_profit
 
         if antecedent != []:
             supAntecedent = dict_assoc_rules[frozenset(value[0])][3]
             if profitInDataframe:
-                for item in antecedentConsequent:
+                for item in antecedent:
                     profit_associated_prev += dict_profit_per_item[item[0]][0]/dict_profit_per_item[item[0]][1]*supAntecedent
+                
+                net_change = profit_associated - profit_associated_prev
+                loss_by_change = net_change - profit_last_item
 
             # Percentage measures
             percItemSetSup = supAntecedentConsequent / numTransaction #in %
@@ -242,7 +256,8 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
             percItemSetSup = supAntecedentConsequent / numTransaction #in %
 
         if(confidence == "NA" or (confidence >= minConf and supAntecedentConsequent >= minSup)):
-            rules.append(
+            if profitInDataframe:
+                rules.append(
                     [antecedent,
                     supAntecedent,
                     consequent,
@@ -254,8 +269,24 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
                     lift,
                     improvement,
                     profit_associated,
+                    perc_of_total_profit,
                     profit_associated_prev,
-                    profit_last_item
+                    net_change,
+                    profit_last_item,
+                    loss_by_change
+                    ])
+            else:
+                rules.append(
+                    [antecedent,
+                    supAntecedent,
+                    consequent,
+                    supConsequent,
+                    antecedentConsequent,
+                    supAntecedentConsequent,
+                    percItemSetSup,
+                    confidence,
+                    lift,
+                    improvement
                     ])
     return rules
 
@@ -265,16 +296,30 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
 
 # Added by David Schmid
 def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minConf=0, item_col=1, date_col=False, profit_col=False, max_date = False, date_range=False, date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5)), max_profit = False, profit_sensitivity = lambda x : 1*x):
-    itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe = getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity)
+    itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe, dateInDataframe = getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity)
     minSup = numTransaction * minSupRatio
     maxSup = numTransaction * maxSupRatio
-    fpTree, headerTable = constructTree(itemSetList, support, minSup, maxSup)
+    diluted_total_profit = 0
+    if profitInDataframe:
+        total_profit = sum([float(v[0]) for v in dict_profit_per_item.values()])
+        total_simple_count = sum([float(v[1]) for v in dict_profit_per_item.values()])
+        minProfit = minSupRatio*total_profit
+        if dateInDataframe:
+            total_date_dependent_count = sum([float(v[2]) for v in dict_profit_per_item.values()])
+            diluted_total_profit = total_profit/total_simple_count*total_date_dependent_count # If date decay function function is present it needs a correction
+        else:
+            diluted_total_profit = total_profit # Without date function, no change needed - cleaner approach
+
+    fpTree, headerTable = constructTree(itemSetList, support, minSup, maxSup, dict_profit_per_item, profitInDataframe,minProfit)
     if(fpTree == None):
         print('No frequent item set')
     else:
         assoc_rules = fpTree.create_association_rules(list())
-        rules = associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe)
-        rules_pd = pd.DataFrame(rules,columns=["antecedent","sup_antecedent","consequent","sup_consequent","antecedent&consequent","sup_ant&cons","sup_perc_ant&cons","confidence","lift","improvement","profit_associated","profit_associated_prev","profit_last_item"]).sort_values("sup_perc_ant&cons",ascending=False)
+        rules = associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe,diluted_total_profit)
+        if profitInDataframe:
+            rules_pd = pd.DataFrame(rules,columns=["antecedent","sup_antecedent","consequent","sup_consequent","antecedent&consequent","sup_ant&cons","sup_perc_ant&cons","confidence","lift","improvement","profit_associated","perc_of_total_profit","profit_associated_prev","net_change","profit_last_item","loss_by_change"]).sort_values("profit_associated",ascending=False)
+        else:
+            rules_pd = pd.DataFrame(rules,columns=["antecedent","sup_antecedent","consequent","sup_consequent","antecedent&consequent","sup_ant&cons","sup_perc_ant&cons","confidence","lift","improvement"]).sort_values("sup_perc_ant&cons",ascending=False)
         return rules_pd
 
 
@@ -283,7 +328,7 @@ df_data_simple_withprofit = data_simple.groupby("transaction",dropna=True)["item
 
 rules = fpgrowthFromDataFrame(\
     df_data_simple_withprofit,
-    minSupRatio=0.02,
+    minSupRatio=0.01,
     maxSupRatio=1,
     minConf=0,
     item_col=1,
@@ -293,4 +338,4 @@ rules = fpgrowthFromDataFrame(\
     ) #Only Date
 
 print(rules)
-rules.to_excel("fp_groth_out.xlsx") 
+rules.to_excel("fp_groth_out.xlsx",index=False) 
