@@ -136,3 +136,41 @@ Moreover the date function, fopr which I currently take a modified sigmoid funct
 - Develop new metrics; Old metrics are too strict for interpretation, because Support can grow, because of "support as profit", has to be interpreted as "gained profit" through an association (Maybe business related, )
 - Describe advantages/ disadvantages of new algorithm (Prove, whatever I write in Thesis, prove the advantages)
 - Reorganise Github structure, README -> A Instruction where to go
+### 4 31.10.2022 - 17.11.2022
+#### 4.1 Work done (Latest version of algorithm: modified_fp_growth_latest)
+- Instead of firmly implementing a date decay function or a prodit function, I rebuild it, that it can be given as lambda functions.
+In this way, the calibrating or changing is much more flexbible, than changing the code for each use case or experiment.
+- When checking the correctness of the code with simple data, I realised that the algorithm was not entirely correct and I need
+to make the last step to build combinations out of the tree structure and not only giving back the tree structure. Normally in the fp-grwoth algorithms, by finding the sets in  fp-growth, there is a loop for every possible combination through the whole dataset again. This is very inefficient and we can simplify it by a little omission. Instead of showing every relation, for example:
+Associative set (A:100,B:90,C:80), I could show:
+Relation from AB -> C
+Relation from AC -> B
+Relation from BC -> A
+However, there is not much gain in it and it even takes the focus away. Most interesting and most consistent ios to only show the relation from highest to lowest support according to the built up tree-scructure of fp-growth.
+In this way, the algorithm becomes "super efficient". Moreover it has to be in this ordered way, otherwise we cannot connect the "associative profit".
+- Solution 1. Problem: Firstly I thought to add an additional number to support, like transaction A, A, A, B, C would be A:3, B:1, C:1. However this will lead to a wrong algorithm. Associative rules rely on 1:1 relations. I found a solution to balance the additional weight out. I add it to the profit and keep the count the same. At the end I calculate the new average profit. In this way
+this additional item is considered in the average profit and will be equivalent for every item. I can not definitvely say, which transaction should have more or less profit for this item, but in average it is correct and in my opinion a "smart" solution.¨
+- Solution 2. Problem: Firstly I wanted to replace the support with the profit. However, this was not smart and will destroy the principle of association rules. Nevertheless, I consider profit as primary measure to decide, if to keep an item and not the frequency. Moreover profit serves as a second measure in the relationship. The tree structure however must be based on the consistent support logic. This is important for building the fp-tree consistently.
+- Solution 3. Problem: It is basically the same, it will interfere with the support, but because it is consistent within the transaction, it will work in a fp-tree logic. What I realized by experimenting with the data is, that the date decay function should be rather smooth, maybe even linear from 0.7 (oldest) - 1 (newest) and not that radical like a sigmoid function. However this is still in testing what is the optiumum
+- Basically I met a lot of problem, which I unfortunately didn't consider. But I am happy and confident to finally have solved them consistently and move on to the Analysis and writing the Master Thesis.
+#### 4.2. Next steps (proposed - Track of old points):
+- Verify/Review correctness, therefore Simulation of simple example, which can be recalculated manually
+-> Done, I found a lot of problems, but solved them one by one
+- Analyse Rules tradtionally with big data set and the newly developed association rule algorithm (Suggestion: Check that it works in general for other datasets, too)
+-> Done for simple example data. Entire Analysis still outstanding for the big dataset and other datasets. However I am confident, that the algorithm is very general and wll work for any Dataset with Transactions.
+- Make a beautiful Juypter Notebook for analysis the different algorithms$
+-> Partly done work in progress
+- Check differences / Interprete Differences
+-> Analysis not yet done for Differences
+- Explore the new algorithm
+-> Explored and improved by fixing the issues.
+- Develop new metrics; Old metrics are too strict for interpretation, because Support can grow, because of "support as profit", has to be interpreted as "gained profit" through an association (Maybe business related, )
+-> Partly done with the financial KPIs which in combination with the traditional ones is an enrichment and gives a much better picture
+-> The old metrics will still work
+- Describe advantages/ disadvantages of new algorithm (Prove, whatever I write in Thesis, prove the advantages)
+-> Partly done in Jupyter Notebook, but completeness still outstanding
+- Reorganise Github structure, README -> A Instruction where to go
+-> Work in progress. At least I deleted the files not needed anymore
+- New: Begin to wrote Master Thesis
+- New: Clean up/ Finalize Algorithm (The Algorithm itself I see nearly as complete), that is is more readable (conistent variable names, comments, explanations)
+- New: Research for average profits per category; Alternatively in simple cases, we could use price instead of profit.
