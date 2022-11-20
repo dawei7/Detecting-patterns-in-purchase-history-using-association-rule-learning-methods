@@ -174,3 +174,12 @@ this additional item is considered in the average profit and will be equivalent 
 - New: Begin to wrote Master Thesis
 - New: Clean up/ Finalize Algorithm (The Algorithm itself I see nearly as complete), that is is more readable (conistent variable names, comments, explanations)
 - New: Research for average profits per category; Alternatively in simple cases, we could use price instead of profit.
+- New: Master Thesis, focus in writing, Describe in Algorithm, Classes instead of functions - Text escription, References which inspired me.
+Latex or Word.
+Table of content
+Introduction
+Literate Review
+Baseline model
+Algorithms
+Experimentation
+Conclusion 
