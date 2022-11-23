@@ -350,29 +350,29 @@ print(rules)
 rules.to_excel("fp_groth_out.xlsx",index=False) 
 """
 
-
+"""
 T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
 T = T.groupby("transaction",dropna=True)["item"].agg([lambda x: list(x),"count"])
 rules = fpgrowthFromDataFrame(T, minSupRatio=0.5, maxSupRatio=1, minConf=0, item_col=1) #Traditional Association Rules
 
 print(rules)
-
-
 """
-T = pd.read_csv("Analysis/Datasets/proof_of_concept/transactions.csv")
-T = T.groupby("transaction",dropna=True)["item","profit"].agg([lambda x: list(x)])
+
+
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T["date"] = pd.to_datetime(T["date"],format='%Y-%m-%d')
+T = T.groupby("transaction",dropna=True)["item","date"].agg([lambda x: list(x)])
 
 rules = fpgrowthFromDataFrame(\
     T,
-    minSupRatio=0.000001,
+    minSupRatio=0.5,
     maxSupRatio=1,
     minConf=0,
     item_col=1,
-    profit_col=2,
-    max_profit = 100,
-    profit_sensitivity = lambda x : 1 * x
+    date_col=2,
+    max_date=datetime.datetime(2022, 11, 10),
+    date_range=10,
+    date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5))
     ) #Only Date
 
-
 print(rules)
-"""
