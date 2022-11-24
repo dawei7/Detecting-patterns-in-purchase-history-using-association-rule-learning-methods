@@ -183,3 +183,15 @@ Baseline model
 Algorithms
 Experimentation
 Conclusion 
+### 5 18.11.2022 - 24.11.2022
+#### 5.1 Work done (Focus: Begin to structure/write thesis/ Describe implementation of modified algorithm)
+- I finally began to write the Thesis, with main focus on structure (I downloaded all previous available and published Master Theses fom Data Science Master)
+- Chapter 1 introduction (Begun, not complete)
+- Chapter 2 Baseline algorithm (not complete, needs references and quality improvements)
+- Chapter 3 Discussion of related works: Not begun yet, but in this chapter I will review the relevant papers (Not started yet) 
+- Chapter 4 Developing a modified Algorithm based on FP-Growth: I began to write, time ran out, not complete, however it is the most important to review
+if my thoughts and implementation of the modified algorithm is valid
+- Chapter 5 Experiments/ Analysis of big datasets: Not begun yet, will be very practical with insights how to effectively use the algorithm for business
+- Chapter 6 Conclusion (Not started yet) 
+#### 5.2 Next steps
+- Continue writing, connected with an iterative process of continuing the analysis in Juypter Notebook and reviewing other papers.

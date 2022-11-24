@@ -5,7 +5,6 @@ import datetime
 import copy
 from itertools import combinations
 
-#######################UTILS#######################################################
 
 
 class Node:
@@ -31,7 +30,6 @@ class Node:
 def sort_dict_by_value(d, reverse = False):
     return dict(sorted(d.items(), key = lambda x: x[1], reverse = reverse))
 
-# Added by David Schmid
 def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity):
 
     dateSupportDict = dict()
@@ -49,7 +47,6 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
         for i in range(date_range):
             dateSupportDict[max_date-datetime.timedelta(days = i)]=date_sensitivity((date_range-i)/date_range) # Create time support dictionary for every date in range
 
-    # Mofified and extended by David Schmid
     
     for row in data.values:
         tempSupport = []
@@ -293,7 +290,6 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
 ##############################################################################
 
 
-# Added by David Schmid
 def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minConf=0, item_col=1, date_col=False, profit_col=False, max_date = False, date_range=False, date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5)), max_profit = False, profit_sensitivity = lambda x : 1*x):
     itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe, dateInDataframe = getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity)
     minSup = numTransaction * minSupRatio
@@ -358,7 +354,7 @@ rules = fpgrowthFromDataFrame(T, minSupRatio=0.5, maxSupRatio=1, minConf=0, item
 print(rules)
 """
 
-
+"""
 T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
 T["date"] = pd.to_datetime(T["date"],format='%Y-%m-%d')
 T = T.groupby("transaction",dropna=True)["item","date"].agg([lambda x: list(x)])
@@ -374,5 +370,21 @@ rules = fpgrowthFromDataFrame(\
     date_range=10,
     date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5))
     ) #Only Date
+"""
+
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T = T.groupby("transaction",dropna=True)["item","profit"].agg([lambda x: list(x)])
+
+rules = fpgrowthFromDataFrame(\
+    T,
+    minSupRatio=0.1,
+    maxSupRatio=1,
+    minConf=0,
+    item_col=1,
+    profit_col=2,
+    max_profit = 100,
+    profit_sensitivity = lambda x : 1 * x
+    ) #Only Profit
+rules
 
 print(rules)
