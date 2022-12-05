@@ -5,7 +5,6 @@ import datetime
 import copy
 from itertools import combinations
 
-#######################UTILS#######################################################
 
 
 class Node:
@@ -31,7 +30,6 @@ class Node:
 def sort_dict_by_value(d, reverse = False):
     return dict(sorted(d.items(), key = lambda x: x[1], reverse = reverse))
 
-# Added by David Schmid
 def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity):
 
     dateSupportDict = dict()
@@ -49,7 +47,6 @@ def getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range,
         for i in range(date_range):
             dateSupportDict[max_date-datetime.timedelta(days = i)]=date_sensitivity((date_range-i)/date_range) # Create time support dictionary for every date in range
 
-    # Mofified and extended by David Schmid
     
     for row in data.values:
         tempSupport = []
@@ -158,7 +155,7 @@ def updateTree(item, treeNode, headerTable, support):
     return treeNode.children[item]
 
 
-def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe,diluted_total_profit):
+def associationRule(assoc_rules, headerTable, minConf, minSup, minTransactionLength, maxTransactionLength, numTransaction, dict_profit_per_item, profitInDataframe,diluted_total_profit,minProfit):
     dict_assoc_rules = dict()
     rules = []
     list_itemsets = []
@@ -171,6 +168,7 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
             antecedent.pop(0) #Pop Root Null Element
             antecedent_consequent = copy.deepcopy(antecedent)
             antecedent_consequent.append(str(consequent))
+
 
             list_itemsets.append(antecedent_consequent)
             list_itemsets_support.append(support_antecedent_consequent)
@@ -255,7 +253,7 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
             improvement = "NA"
             percItemSetSup = supAntecedentConsequent / numTransaction #in %
 
-        if profitInDataframe and (confidence == "NA" or confidence >= minConf) and profit_associated >= minSup:
+        if profitInDataframe and (confidence == "NA" or confidence >= minConf) and profit_associated >= minProfit and len(antecedentConsequent)>=minTransactionLength and len(antecedentConsequent)<=maxTransactionLength:
             rules.append([
                 antecedent,
                 supAntecedent,
@@ -274,7 +272,7 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
                 profit_last_item,
                 loss_by_change
                 ])
-        elif not profitInDataframe and (confidence == "NA" or confidence >= minConf) and supAntecedentConsequent >= minSup:
+        elif not profitInDataframe and (confidence == "NA" or confidence >= minConf) and supAntecedentConsequent >= minSup and len(antecedentConsequent)>=minTransactionLength and len(antecedentConsequent)<=maxTransactionLength:
             rules.append([
                 antecedent,
                 supAntecedent,
@@ -293,8 +291,7 @@ def associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, d
 ##############################################################################
 
 
-# Added by David Schmid
-def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minConf=0, item_col=1, date_col=False, profit_col=False, max_date = False, date_range=False, date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5)), max_profit = False, profit_sensitivity = lambda x : 1*x):
+def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minTransactionLength=1, maxTransactionLength=100, minConf=0, item_col=1, date_col=False, profit_col=False, max_date = False, date_range=False, date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5)), max_profit = False, profit_sensitivity = lambda x : 1*x):
     itemSetList, support, numTransaction, dict_profit_per_item, profitInDataframe, dateInDataframe = getFromDataFrame(data, item_col, date_col, profit_col, max_date, date_range, date_sensitivity, max_profit, profit_sensitivity)
     minSup = numTransaction * minSupRatio
     maxSup = numTransaction * maxSupRatio
@@ -315,7 +312,7 @@ def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minConf=0, ite
         print('No frequent item set')
     else:
         assoc_rules = fpTree.create_association_rules(list())
-        rules = associationRule(assoc_rules, headerTable, minConf, minSup, numTransaction, dict_profit_per_item, profitInDataframe,diluted_total_profit)
+        rules = associationRule(assoc_rules, headerTable, minConf, minSup, minTransactionLength, maxTransactionLength, numTransaction, dict_profit_per_item, profitInDataframe,diluted_total_profit,minProfit)
         if profitInDataframe:
             rules_pd = pd.DataFrame(rules,columns=["antecedent","sup_antecedent","consequent","sup_consequent","antecedent&consequent","sup_ant&cons","sup_perc_ant&cons","confidence","lift","improvement","profit_associated","perc_of_total_profit","profit_associated_prev","net_change","profit_last_item","loss_by_change"]).sort_values("profit_associated",ascending=False).reset_index(drop=True)
         else:
@@ -349,3 +346,78 @@ rules = fpgrowthFromDataFrame(\
 print(rules)
 rules.to_excel("fp_groth_out.xlsx",index=False) 
 """
+
+"""
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T = T.groupby("transaction",dropna=True)["item"].agg([lambda x: list(x),"count"])
+rules = fpgrowthFromDataFrame(T, minSupRatio=0.5, maxSupRatio=1, minConf=0, item_col=1) #Traditional Association Rules
+
+print(rules)
+"""
+
+"""
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T["date"] = pd.to_datetime(T["date"],format='%Y-%m-%d')
+T = T.groupby("transaction",dropna=True)["item","date"].agg([lambda x: list(x)])
+
+rules = fpgrowthFromDataFrame(\
+    T,
+    minSupRatio=0.5,
+    maxSupRatio=1,
+    minConf=0,
+    item_col=1,
+    date_col=2,
+    max_date=datetime.datetime(2022, 11, 10),
+    date_range=10,
+    date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5))
+    ) #Only Date
+"""
+
+"""
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T = T.groupby("transaction",dropna=True)["item","profit"].agg([lambda x: list(x)])
+
+rules = fpgrowthFromDataFrame(\
+    T,
+    minSupRatio=0.1,
+    maxSupRatio=1,
+    minConf=0,
+    item_col=1,
+    profit_col=2,
+    max_profit = 100,
+    profit_sensitivity = lambda x : 1 * x
+    ) #Only Profit
+rules
+
+print(rules)
+"""
+
+
+T = pd.read_csv("Datasets/proof_of_concept/transactions.csv")
+T["date"] = pd.to_datetime(T["date"],format='%Y-%m-%d')
+T = T.groupby("transaction",dropna=True)["item","date","profit"].agg([lambda x: list(x)])
+
+import math
+import datetime
+
+rules = fpgrowthFromDataFrame(\
+    T,
+    # General parameters
+    minSupRatio=0.01,
+    maxSupRatio=1,
+    minTransactionLength = 2,
+    maxTransactionLength = 2,
+    minConf=0,
+    item_col=1,
+    # Date parameters
+    date_col=2,
+    max_date=datetime.datetime(2022, 11, 10),
+    date_range=10,
+    date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5)),
+    # Profit parameters
+    profit_col=3,
+    max_profit = 100,
+    profit_sensitivity = lambda x : 1 * x
+    )
+
+rules.to_excel("fp_groth_out.xlsx",index=False)
