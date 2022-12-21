@@ -321,6 +321,7 @@ def fpgrowthFromDataFrame(data, minSupRatio=0.001, maxSupRatio=1, minTransaction
 
 
 
+
 """
 data = pd.read_csv("Analysis/datasets/ecommerce_purchase_history_from_electronic_store/kz_part_1 copy 2.csv")
 data["date"] = pd.to_datetime(data['event_time']).dt.date
@@ -345,3 +346,78 @@ rules = fpgrowthFromDataFrame(\
 print(rules)
 rules.to_excel("fp_groth_out.xlsx",index=False) 
 """
+
+"""
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T = T.groupby("transaction",dropna=True)["item"].agg([lambda x: list(x),"count"])
+rules = fpgrowthFromDataFrame(T, minSupRatio=0.5, maxSupRatio=1, minConf=0, item_col=1) #Traditional Association Rules
+
+print(rules)
+"""
+
+"""
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T["date"] = pd.to_datetime(T["date"],format='%Y-%m-%d')
+T = T.groupby("transaction",dropna=True)["item","date"].agg([lambda x: list(x)])
+
+rules = fpgrowthFromDataFrame(\
+    T,
+    minSupRatio=0.5,
+    maxSupRatio=1,
+    minConf=0,
+    item_col=1,
+    date_col=2,
+    max_date=datetime.datetime(2022, 11, 10),
+    date_range=10,
+    date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5))
+    ) #Only Date
+"""
+
+"""
+T = pd.read_csv("Analysis/datasets/proof_of_concept/transactions.csv")
+T = T.groupby("transaction",dropna=True)["item","profit"].agg([lambda x: list(x)])
+
+rules = fpgrowthFromDataFrame(\
+    T,
+    minSupRatio=0.1,
+    maxSupRatio=1,
+    minConf=0,
+    item_col=1,
+    profit_col=2,
+    max_profit = 100,
+    profit_sensitivity = lambda x : 1 * x
+    ) #Only Profit
+rules
+
+print(rules)
+"""
+
+
+T = pd.read_csv("Datasets/proof_of_concept/transactions.csv")
+T["date"] = pd.to_datetime(T["date"],format='%Y-%m-%d')
+T = T.groupby("transaction",dropna=True)["item","date","profit"].agg([lambda x: list(x)])
+
+import math
+import datetime
+
+rules = fpgrowthFromDataFrame(\
+    T,
+    # General parameters
+    minSupRatio=0.01,
+    maxSupRatio=1,
+    minTransactionLength = 2,
+    maxTransactionLength = 2,
+    minConf=0,
+    item_col=1,
+    # Date parameters
+    date_col=2,
+    max_date=datetime.datetime(2022, 11, 10),
+    date_range=10,
+    date_sensitivity = lambda x: 1 / (1 + math.exp(-10*x+5)),
+    # Profit parameters
+    profit_col=3,
+    max_profit = 100,
+    profit_sensitivity = lambda x : 1 * x
+    )
+
+rules.to_excel("fp_groth_out.xlsx",index=False)
