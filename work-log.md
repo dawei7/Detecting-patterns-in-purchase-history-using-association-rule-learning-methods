@@ -195,3 +195,14 @@ if my thoughts and implementation of the modified algorithm is valid
 - Chapter 6 Conclusion (Not started yet) 
 #### 5.2 Next steps
 - Continue writing, connected with an iterative process of continuing the analysis in Juypter Notebook and reviewing other papers.
+### 5 25.11.2022 - 08.01.2023
+#### 5.1 Work done (Focus: Finalizing Thesis & Presentation)
+- I created/finalized experiments bit 3 datasets to show the advantage of the modified FP-growth algorihtm
+- I spent most of time, to write the missing parts, beautify and complement the missing parts
+- It was an iterative process of writing, correcting, cleaning up and so on
+- The end result is a "finalized" draft version of my master thesus
+- After that I created a draft presentation to show the results from my thesis in front of thew commitee
+
+#### 5.2 Next steps until Deadlines
+- Review draft version of Thesis for further improvements
+- Review draft version of presentation for further improvements
