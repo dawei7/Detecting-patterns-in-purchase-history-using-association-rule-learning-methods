@@ -200,9 +200,41 @@ if my thoughts and implementation of the modified algorithm is valid
 - I created/finalized experiments bit 3 datasets to show the advantage of the modified FP-growth algorihtm
 - I spent most of time, to write the missing parts, beautify and complement the missing parts
 - It was an iterative process of writing, correcting, cleaning up and so on
-- The end result is a "finalized" draft version of my master thesus
+- The end result is a "finalized" draft version of my master thesis
 - After that I created a draft presentation to show the results from my thesis in front of thew commitee
 
 #### 5.2 Next steps until Deadlines
 - Review draft version of Thesis for further improvements
 - Review draft version of presentation for further improvements
+
+
+To Do:
+- Title lecturer
+- First page template
+- Table of Figures maybe delete
+- Fonts & Space HSE standard
+- Why it is it worth pursuing/relevance of the work (little poaragraph) Releveant because 1,2,3.
+- Related work, make groups f similar algorithms, more compact and describe them, no only list them.
+- Review passages with Let us call that List 1
+- Conblsuion rewrite, not chapter by chapter, but mainly focus on main points
+- References on a new page
+
+- Presentation
+-> Bullet points, Lists, Graphs, not Sentences/ 1-1.5 Minutes per Slide
+-> Most important information
+-> Hidden Slides for showing, when questions are posed Afetr official presentation
+-> Understandable, make it pleasant to watch/ Main thing is to listen
+-> Time for presentation - 
+-> Page 1 -> Relevance/ - Main problem business, not a lot of text, 
+-> Page 2 not good 
+-> Page 3 50% - Be already
+-> Page 4 ok
+-> Page 5 50%, maybe as a table
+-> Page 6 has to change
+-> Page 7 ius ok
+-> Page 8 50%
+-> Page 9 not good
+-> Add some Graphs
+
+What should people remember! Sahre motivation, What did I solve, How well did I solve it?
+How well did I solve the posed problem! Red line!
