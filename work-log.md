@@ -213,10 +213,10 @@ To Do:
 - First page template
 - Table of Figures maybe delete
 - Fonts & Space HSE standard
-- Why it is it worth pursuing/relevance of the work (little poaragraph) Releveant because 1,2,3.
+- Why it is it worth pursuing/relevance of the work (little paragraph) Releveant because 1,2,3.
 - Related work, make groups f similar algorithms, more compact and describe them, no only list them.
 - Review passages with Let us call that List 1
-- Conblsuion rewrite, not chapter by chapter, but mainly focus on main points
+- Conclusion rewrite, not chapter by chapter, but mainly focus on main points
 - References on a new page
 
 - Presentation
@@ -231,10 +231,10 @@ To Do:
 -> Page 4 ok
 -> Page 5 50%, maybe as a table
 -> Page 6 has to change
--> Page 7 ius ok
+-> Page 7 is ok
 -> Page 8 50%
 -> Page 9 not good
 -> Add some Graphs
 
-What should people remember! Sahre motivation, What did I solve, How well did I solve it?
+What should people remember! Share motivation, What did I solve, How well did I solve it?
 How well did I solve the posed problem! Red line!
